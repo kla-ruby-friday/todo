@@ -1,19 +1,24 @@
 require 'sinatra'
 require_relative './models/task.rb'
+require "sinatra/activerecord"
+require 'sinatra/flash'
 
-get '/hello' do
-    'Hello World'
-end
-
-get '/' do
-    erb :index
-end
+enable :sessions
+set :database, { adapter: "sqlite3", database: "todo.sqlite3" }
 
 get '/tasks' do
-    @tasks = []
-    10.times do |index|
-        @tasks << Task.new("Task #{ index }", "Where for task #{ index }", index)
-    end
-    @tasks
-    erb :index
+  @tasks = Task.all
+  erb :index
+end
+
+get '/new' do
+  erb :new
+end
+
+post '/create' do
+  @task = Task.create(name: params[:name], place: params[:place])
+  if @task.save 
+    flash[:notice] = "Task created successfully"
+    redirect '/tasks'
+  end
 end
